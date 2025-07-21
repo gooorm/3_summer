@@ -1,0 +1,56 @@
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.metrics import accuracy_score
+
+# 1. 데이터셋 준비 (샘플용)
+'''
+data = {
+    "text": [
+        "I love this movie", "This film was terrible",
+        "Absolutely fantastic!", "I hated it", "Best movie ever",
+        "Worst movie I've seen", "It was great", "It was boring",
+        "Not bad at all", "I can't stand it", "Superb!",
+        "Totally worthless", "Enjoyed every moment", "It was a disaster",
+        "What a masterpiece", "I regret watching", "So emotional",
+        "Pure trash", "Beautiful story", "Awful performance"
+    ],
+    "label": [1, 0, 1, 0, 1, 0, 1, 0, 1, 0,
+              1, 0, 1, 0, 1, 0, 1, 0, 1, 0]
+}'''
+data = pd.read_csv('review.csv')
+df = pd.DataFrame(data)
+df['label'] = df['label'].map({'positive': 1, 'negative': 0})
+
+#print(df[df.isnull().any(axis=1)])
+#df.dropna(inplace=True)
+
+#print(df['text'])
+# 2. 벡터화
+vectorizer = CountVectorizer()
+X = vectorizer.fit_transform(df['text'])
+y = df['label']
+
+# 3. 학습 / 테스트 나누기
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, stratify=y)
+# 4. 모델 학습
+model = MultinomialNB()
+model.fit(X_train, y_train)
+
+# 5. 테스트 및 정확도 출력
+y_pred = model.predict(X_test)
+print("정확도:", accuracy_score(y_test, y_pred))
+
+# 6. 예측해보기
+def predict_sentiment(sentence):
+    vec = vectorizer.transform([sentence])
+    pred = model.predict(vec)[0]
+    return "긍정" if pred else "부정"
+
+print(predict_sentiment("I really love this!"))
+print(predict_sentiment("It was awful..."))
+print(predict_sentiment("It was awesome"))
+print(predict_sentiment("I love it"))
+print(predict_sentiment("No."))
+print(predict_sentiment("not Bad."))
